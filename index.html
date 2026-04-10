@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Great Books Explorer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>The Great Books Explorer</h1>
+        <p>Explore a visual map of foundational books, then build a practical reading path.</p>
+      </div>
+      <a class="button ghost" href="#sources">Source attribution</a>
+    </header>
+
+    <main>
+      <section class="panel controls" aria-label="Explorer controls">
+        <div>
+          <label for="search">Search titles / authors</label>
+          <input id="search" type="search" placeholder="Try: Plato, Euclid, tragedy..." />
+        </div>
+
+        <div>
+          <span class="label">Discipline</span>
+          <div id="disciplineFilters" class="chips" role="group" aria-label="Discipline filters"></div>
+        </div>
+
+        <div>
+          <span class="label">Track focus</span>
+          <div id="trackFilters" class="chips" role="group" aria-label="Track filters"></div>
+        </div>
+
+        <div>
+          <label for="subsetSize">Recommended subset size</label>
+          <input id="subsetSize" type="range" min="8" max="28" value="14" step="1" />
+          <p class="muted"><span id="subsetValue">14</span> books</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-title">
+          <h2>Visual map</h2>
+          <p class="muted">Books are grouped by discipline. Node size reflects recommendation score.</p>
+        </div>
+        <div id="map" class="map" aria-live="polite"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-title">
+          <h2>Recommended reading order</h2>
+          <p class="muted">Ordered by prerequisites + weighted score (cross-source consensus, influence, accessibility).</p>
+        </div>
+        <ol id="readingOrder" class="reading-order"></ol>
+      </section>
+
+      <section class="panel" id="sources">
+        <h2>Methodology & source attribution</h2>
+        <p>
+          This MVP starts with books that repeatedly appear in the five provided sources, then assigns each book a score:
+          <strong>source overlap + influence + accessibility + foundational role</strong>.
+          The app then applies prerequisites to produce a beginner-friendly order and allows filtering by discipline/track.
+        </p>
+        <ul id="sourceList"></ul>
+      </section>
+    </main>
+
+    <template id="bookNodeTemplate">
+      <article class="book-node">
+        <h3></h3>
+        <p class="meta"></p>
+        <p class="tags"></p>
+        <p class="score"></p>
+      </article>
+    </template>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
