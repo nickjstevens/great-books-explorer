@@ -2,91 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>The Great Books Explorer</title>
-    <link rel="stylesheet" href="styles.css" />
+    <title>tmp-vite</title>
   </head>
   <body>
-    <header>
-      <div>
-        <h1>The Great Books Explorer</h1>
-        <p>Explore a visual map of foundational books, then build a practical reading path.</p>
-      </div>
-      <a class="button ghost" href="#sources">Source attribution</a>
-    </header>
-
-    <main>
-      <section class="panel controls" aria-label="Explorer controls">
-        <div>
-          <label for="search">Search titles / authors</label>
-          <input id="search" type="search" placeholder="Try: Plato, Euclid, tragedy..." />
-        </div>
-
-        <div>
-          <span class="label">Discipline</span>
-          <div id="disciplineFilters" class="chips" role="group" aria-label="Discipline filters"></div>
-        </div>
-
-        <div>
-          <span class="label">Track focus</span>
-          <div id="trackFilters" class="chips" role="group" aria-label="Track filters"></div>
-        </div>
-
-        <div>
-          <label for="subsetSize">Recommended subset size</label>
-          <input id="subsetSize" type="range" min="8" max="40" value="18" step="1" />
-          <p class="muted"><span id="subsetValue">18</span> books</p>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="section-title">
-          <h2>Visual map</h2>
-          <p class="muted">Books are grouped by discipline. Node size reflects recommendation score.</p>
-        </div>
-        <div id="map" class="map" aria-live="polite"></div>
-      </section>
-
-      <section class="panel">
-        <div class="section-title">
-          <h2>Recommended reading order</h2>
-          <p class="muted">Ordered by prerequisites + weighted score (cross-source consensus, influence, accessibility).</p>
-        </div>
-        <ol id="readingOrder" class="reading-order"></ol>
-      </section>
-
-      <section class="panel" id="sources">
-        <h2>Methodology & source attribution</h2>
-        <p>
-          This MVP starts with books that repeatedly appear in the five provided sources, then assigns each book a score:
-          <strong>source overlap + influence + accessibility + foundational role</strong>.
-          The app then applies prerequisites to produce a beginner-friendly order and allows filtering by discipline/track.
-        </p>
-        <ul id="sourceList"></ul>
-      </section>
-    </main>
-
-    <template id="bookNodeTemplate">
-      <article class="book-node" role="button" tabindex="0" aria-label="Open book details">
-        <h3></h3>
-        <p class="meta"></p>
-        <p class="tags"></p>
-        <p class="score"></p>
-      </article>
-    </template>
-
-    <dialog id="bookModal" class="book-modal">
-      <article class="modal-card">
-        <button id="closeModal" class="close-modal" type="button" aria-label="Close details">×</button>
-        <p id="modalDiscipline" class="modal-badge"></p>
-        <h2 id="modalTitle"></h2>
-        <p id="modalMeta" class="modal-meta"></p>
-        <p id="modalSummary" class="modal-summary"></p>
-        <h3>Key takeaways</h3>
-        <ul id="modalTakeaways" class="takeaway-list"></ul>
-      </article>
-    </dialog>
-
-    <script src="app.js" type="module"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

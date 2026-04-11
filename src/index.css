@@ -1,0 +1,122 @@
+:root {
+  --bg: #f6efe4;
+  --surface: rgba(255, 251, 245, 0.88);
+  --surface-strong: rgba(255, 250, 242, 0.96);
+  --text: #5f6472;
+  --text-strong: #252938;
+  --muted: #697086;
+  --eyebrow: #7b7f8b;
+  --border: rgba(182, 154, 111, 0.36);
+  --accent: #2d6b59;
+  --accent-strong: #202735;
+  --shadow-soft: 0 24px 70px rgba(59, 42, 17, 0.08);
+
+  --sans: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  --serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  --mono: 'SFMono-Regular', 'SF Mono', ui-monospace, Menlo, monospace;
+
+  color: var(--text);
+  font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif;
+  font-synthesis: none;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+}
+
+:root[data-theme='dark'] {
+  --bg: #141722;
+  --surface: rgba(29, 34, 49, 0.92);
+  --surface-strong: rgba(35, 41, 58, 0.98);
+  --text: #adb5c8;
+  --text-strong: #f0eadf;
+  --muted: #97a0b8;
+  --eyebrow: #8f98af;
+  --border: rgba(167, 143, 103, 0.28);
+  --accent: #8bb9a7;
+  --accent-strong: #ebe2d4;
+  --shadow-soft: 0 22px 64px rgba(0, 0, 0, 0.34);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  background:
+    radial-gradient(circle at top center, rgba(255, 233, 187, 0.2), transparent 20%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 20%),
+    var(--bg);
+  margin: 0;
+  min-height: 100vh;
+}
+
+a,
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+}
+
+button,
+input,
+select {
+  color: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 78%, white);
+  outline-offset: 2px;
+}
+
+#root {
+  margin: 0 auto;
+  max-width: 90rem;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--text-strong);
+  font-family: var(--serif);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+h1 {
+  font-size: clamp(3rem, 6vw, 5.6rem);
+  line-height: 0.96;
+}
+
+h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+h3 {
+  font-size: clamp(1.45rem, 2vw, 2rem);
+}
+
+h4 {
+  font-size: clamp(1.1rem, 1.5vw, 1.35rem);
+}
+
+p {
+  margin: 0;
+}

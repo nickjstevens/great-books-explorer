@@ -1,0 +1,74 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+
+import {
+  books,
+  getVisibleBooks,
+  links,
+  paths,
+  sources,
+  territories,
+  territoryMap,
+} from '../src/data/greatBooks.js'
+
+test('catalog ships a true 100-book corpus', () => {
+  assert.equal(books.length, 100)
+})
+
+test('every book has source attribution and a valid territory', () => {
+  for (const book of books) {
+    assert.ok(book.sourceRefs.length >= 1, `${book.title} has no source refs`)
+    assert.ok(territoryMap[book.territoryId], `${book.title} has invalid territory`)
+    assert.ok(book.summary.length > 20, `${book.title} summary is too short`)
+    assert.ok(book.takeaways.length >= 3, `${book.title} needs takeaways`)
+  }
+})
+
+test('territory metadata is complete', () => {
+  assert.equal(territories.length, 9)
+  for (const territory of territories) {
+    assert.ok(territory.question.endsWith('?'))
+    assert.ok(territory.summary.length > 20)
+  }
+})
+
+test('paths only reference valid books and produce graph links', () => {
+  const bookIds = new Set(books.map((book) => book.id))
+
+  for (const path of paths) {
+    assert.ok(path.bookIds.length >= 6)
+    for (const bookId of path.bookIds) {
+      assert.ok(bookIds.has(bookId), `${path.name} references unknown book ${bookId}`)
+    }
+  }
+
+  assert.ok(links.length > 0)
+})
+
+test('overview mode returns a cross-territory atlas while focus mode narrows the set', () => {
+  const overview = getVisibleBooks({
+    searchQuery: '',
+    selectedTerritory: 'all',
+    selectedPathId: 'all',
+    era: 'all',
+    curatedOnly: true,
+  })
+  const focus = getVisibleBooks({
+    searchQuery: '',
+    selectedTerritory: 'all',
+    selectedPathId: 'justice-and-the-city',
+    era: 'all',
+    curatedOnly: true,
+  })
+
+  assert.ok(new Set(overview.map((book) => book.territoryId)).size > 5)
+  assert.ok(focus.length < overview.length)
+  assert.ok(focus.some((book) => book.id === 'republic'))
+})
+
+test('source metadata includes the five requested sources', () => {
+  assert.equal(sources.length, 5)
+  for (const source of sources) {
+    assert.ok(source.url.startsWith('https://') || source.url.startsWith('http://'))
+  }
+})
