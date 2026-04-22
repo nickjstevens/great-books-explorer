@@ -534,6 +534,8 @@ export const eras = [
   { id: 'Modern', label: 'Modern' },
 ]
 
+export const difficultyOptions = ['all', 'Starter', 'Moderate', 'Challenging']
+
 export function getPathById(pathId) {
   return paths.find((path) => path.id === pathId) ?? paths[0]
 }
@@ -573,6 +575,14 @@ export function getSourceFootprint(book) {
   return book.sourceRefs.map((sourceId) => sourceMap[sourceId])
 }
 
+export function buildBookResourceLinks(book) {
+  const query = encodeURIComponent(`${book.title} ${book.author}`)
+  return {
+    projectGutenberg: `https://www.gutenberg.org/ebooks/search/?query=${query}`,
+    archive: `https://archive.org/search?query=${query}`,
+  }
+}
+
 export function orderBooks(bookList, mode) {
   if (mode === 'chronological') {
     return [...bookList].sort((left, right) => left.sortYear - right.sortYear)
@@ -585,6 +595,8 @@ export function getVisibleBooks({
   selectedTerritory,
   selectedPathId,
   era,
+  difficulty = 'all',
+  sourceId = 'all',
   curatedOnly,
 }) {
   const normalized = searchQuery.trim().toLowerCase()
@@ -616,12 +628,30 @@ export function getVisibleBooks({
     pool = pool.filter((book) => book.eraLabel === era)
   }
 
+  if (difficulty !== 'all') {
+    pool = pool.filter((book) => book.difficulty === difficulty)
+  }
+
+  if (sourceId !== 'all') {
+    pool = pool.filter((book) => book.sourceRefs.includes(sourceId))
+  }
+
   if (normalized) {
     pool = books.filter((book) => {
       const haystack = `${book.title} ${book.author} ${book.focus} ${book.tags.join(' ')}`.toLowerCase()
       return haystack.includes(normalized)
     })
 
+    if (selectedPathId !== 'all') {
+      const path = getPathById(selectedPathId)
+      const pathSet = new Set(path.bookIds)
+      const territoryIds = new Set(path.territoryIds)
+      pool = pool.filter(
+        (book) =>
+          pathSet.has(book.id) ||
+          (territoryIds.has(book.territoryId) && (book.bestOf || normalized.length > 0)),
+      )
+    }
     if (selectedTerritory !== 'all') {
       pool = pool.filter(
         (book) =>
@@ -630,6 +660,12 @@ export function getVisibleBooks({
     }
     if (era !== 'all') {
       pool = pool.filter((book) => book.eraLabel === era)
+    }
+    if (difficulty !== 'all') {
+      pool = pool.filter((book) => book.difficulty === difficulty)
+    }
+    if (sourceId !== 'all') {
+      pool = pool.filter((book) => book.sourceRefs.includes(sourceId))
     }
   }
 

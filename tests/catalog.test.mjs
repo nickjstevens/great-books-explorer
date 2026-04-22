@@ -3,6 +3,8 @@ import assert from 'node:assert/strict'
 
 import {
   books,
+  buildBookResourceLinks,
+  difficultyOptions,
   getVisibleBooks,
   links,
   paths,
@@ -71,4 +73,40 @@ test('source metadata includes the five requested sources', () => {
   for (const source of sources) {
     assert.ok(source.url.startsWith('https://') || source.url.startsWith('http://'))
   }
+})
+
+test('difficulty and source filters narrow the visible catalog', () => {
+  assert.deepEqual(difficultyOptions, ['all', 'Starter', 'Moderate', 'Challenging'])
+
+  const starterOnly = getVisibleBooks({
+    searchQuery: '',
+    selectedTerritory: 'all',
+    selectedPathId: 'all',
+    era: 'all',
+    difficulty: 'Starter',
+    sourceId: 'all',
+    curatedOnly: false,
+  })
+  assert.ok(starterOnly.length > 0)
+  assert.ok(starterOnly.every((book) => book.difficulty === 'Starter'))
+
+  const tacOnly = getVisibleBooks({
+    searchQuery: '',
+    selectedTerritory: 'all',
+    selectedPathId: 'all',
+    era: 'all',
+    difficulty: 'all',
+    sourceId: 'tac',
+    curatedOnly: false,
+  })
+  assert.ok(tacOnly.length > 0)
+  assert.ok(tacOnly.every((book) => book.sourceRefs.includes('tac')))
+})
+
+test('book resource links are generated for public library searches', () => {
+  const links = buildBookResourceLinks(books.find((book) => book.id === 'republic'))
+  assert.ok(links.projectGutenberg.includes('gutenberg.org'))
+  assert.ok(links.archive.includes('archive.org'))
+  assert.match(links.projectGutenberg, /Republic/)
+  assert.match(links.archive, /Plato/)
 })
