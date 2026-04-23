@@ -3,8 +3,10 @@ import assert from 'node:assert/strict'
 
 import {
   books,
+  buildBookCoverImage,
   buildBookResourceLinks,
   difficultyOptions,
+  getDirectionalRelatedBooks,
   getVisibleBooks,
   links,
   paths,
@@ -109,4 +111,36 @@ test('book resource links are generated for public library searches', () => {
   assert.ok(links.archive.includes('archive.org'))
   assert.match(links.projectGutenberg, /Republic/)
   assert.match(links.archive, /Plato/)
+})
+
+test('search results stay in conceptual order rather than chronological order', () => {
+  const plato = getVisibleBooks({
+    searchQuery: 'Plato',
+    selectedTerritory: 'all',
+    selectedPathId: 'all',
+    era: 'all',
+    difficulty: 'all',
+    sourceId: 'all',
+    curatedOnly: false,
+  })
+
+  assert.ok(plato.length >= 4)
+  assert.equal(plato[0].id, 'republic')
+  assert.ok(plato.findIndex((book) => book.id === 'republic') < plato.findIndex((book) => book.id === 'apology'))
+})
+
+test('directional related books split prerequisites from next steps', () => {
+  const neighbors = getDirectionalRelatedBooks('nicomachean-ethics')
+
+  assert.ok(neighbors.readFirstIds.includes('apology'))
+  assert.ok(neighbors.readNextIds.includes('meditations'))
+  assert.ok(!neighbors.readNextIds.includes('apology'))
+})
+
+test('book cover images expose a usable detail-view image source and alt text', () => {
+  const cover = buildBookCoverImage(books.find((book) => book.id === 'meditations'))
+
+  assert.match(cover.src, /^data:image\/svg\+xml;charset=UTF-8,|^https?:\/\//)
+  assert.match(cover.alt, /Meditations/)
+  assert.match(cover.alt, /Marcus Aurelius/)
 })

@@ -556,19 +556,51 @@ export function getPathRationale(pathId, bookId) {
   return `It belongs here because ${previous.title} sets up the pressure that ${booksById[bookId].title} answers more directly.`
 }
 
-export function getRelatedBookIds(bookId) {
-  const directLinks = links
-    .filter((link) => link.from === bookId || link.to === bookId)
-    .flatMap((link) => [link.from, link.to])
-    .filter((candidate) => candidate !== bookId)
+export function getDirectionalRelatedBooks(bookId) {
+  const book = booksById[bookId]
+  if (!book) {
+    return { readFirstIds: [], readNextIds: [] }
+  }
+
+  const readFirstIds = links
+    .filter((link) => link.to === bookId && (link.type === 'prerequisite' || link.type === 'adjacent'))
+    .map((link) => link.from)
+
+  const readNextIds = links
+    .filter((link) => link.from === bookId && (link.type === 'read_next' || link.type === 'adjacent'))
+    .map((link) => link.to)
 
   const territoryPeers = books
-    .filter((book) => book.territoryId === booksById[bookId].territoryId && book.id !== bookId)
+    .filter((candidate) => candidate.territoryId === book.territoryId && candidate.id !== bookId)
     .sort((left, right) => right.impactScore - left.impactScore)
-    .slice(0, 3)
-    .map((book) => book.id)
+    .map((candidate) => candidate.id)
 
-  return [...new Set([...directLinks, ...territoryPeers])].slice(0, 6)
+  const fill = (seed, excluded = []) => {
+    const blocked = new Set([bookId, ...excluded])
+    const ids = [...new Set(seed.filter((candidate) => !blocked.has(candidate)))]
+
+    for (const peerId of territoryPeers) {
+      if (ids.length >= 4) break
+      if (!blocked.has(peerId) && !ids.includes(peerId)) {
+        ids.push(peerId)
+      }
+    }
+
+    return ids.slice(0, 4)
+  }
+
+  const filledReadFirstIds = fill(readFirstIds, readNextIds)
+  const filledReadNextIds = fill(readNextIds, filledReadFirstIds)
+
+  return {
+    readFirstIds: filledReadFirstIds,
+    readNextIds: filledReadNextIds,
+  }
+}
+
+export function getRelatedBookIds(bookId) {
+  const { readFirstIds, readNextIds } = getDirectionalRelatedBooks(bookId)
+  return [...new Set([...readFirstIds, ...readNextIds])].slice(0, 6)
 }
 
 export function getSourceFootprint(book) {
@@ -581,6 +613,58 @@ export function buildBookResourceLinks(book) {
     projectGutenberg: `https://www.gutenberg.org/ebooks/search/?query=${query}`,
     archive: `https://archive.org/search?query=${query}`,
   }
+}
+
+export function buildBookCoverImage(book) {
+  const territory = territoryMap[book.territoryId]
+  const titleWords = book.title.split(/\s+/)
+  const titleLines = []
+
+  while (titleWords.length) {
+    titleLines.push(titleWords.splice(0, titleLines.length === 0 ? 2 : 3).join(' '))
+  }
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="720" height="1080" viewBox="0 0 720 1080" role="img" aria-label="${escapeXml(book.title)} by ${escapeXml(book.author)} cover art">
+      <defs>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="${territory.color}" />
+          <stop offset="100%" stop-color="#1c2334" />
+        </linearGradient>
+        <linearGradient id="band" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.12)" />
+          <stop offset="100%" stop-color="rgba(255,255,255,0.02)" />
+        </linearGradient>
+      </defs>
+      <rect width="720" height="1080" rx="42" fill="url(#bg)" />
+      <rect x="48" y="48" width="624" height="984" rx="30" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="2" />
+      <rect x="96" y="110" width="528" height="154" rx="20" fill="url(#band)" />
+      <text x="360" y="176" fill="rgba(255,255,255,0.85)" font-family="Georgia, serif" font-size="34" letter-spacing="7" text-anchor="middle">GREAT BOOKS ATLAS</text>
+      <text x="360" y="326" fill="#ffffff" font-family="Georgia, serif" font-size="66" font-weight="700" text-anchor="middle">${titleLines
+        .map((line, index) => `<tspan x="360" dy="${index === 0 ? 0 : 78}">${escapeXml(line)}</tspan>`)
+        .join('')}</text>
+      <text x="360" y="${430 + Math.max(0, titleLines.length - 1) * 78}" fill="rgba(255,255,255,0.78)" font-family="Avenir Next, Arial, sans-serif" font-size="30" letter-spacing="5" text-anchor="middle">${escapeXml(book.author.toUpperCase())}</text>
+      <circle cx="360" cy="710" r="178" fill="rgba(255,255,255,0.08)" />
+      <circle cx="360" cy="710" r="136" fill="rgba(255,255,255,0.12)" />
+      <text x="360" y="700" fill="#ffffff" font-family="Avenir Next, Arial, sans-serif" font-size="28" letter-spacing="6" text-anchor="middle">${escapeXml(territory.shortName.toUpperCase())}</text>
+      <text x="360" y="760" fill="#ffffff" font-family="Georgia, serif" font-size="58" font-weight="700" text-anchor="middle">${escapeXml(book.yearLabel)}</text>
+      <text x="360" y="930" fill="rgba(255,255,255,0.78)" font-family="Avenir Next, Arial, sans-serif" font-size="26" letter-spacing="5" text-anchor="middle">${escapeXml(book.focus.toUpperCase())}</text>
+    </svg>
+  `.replace(/\n\s+/g, ' ').trim()
+
+  return {
+    src: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+    alt: `${book.title} by ${book.author} cover image`,
+  }
+}
+
+function escapeXml(value) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 export function orderBooks(bookList, mode) {
@@ -669,7 +753,7 @@ export function getVisibleBooks({
     }
   }
 
-  return orderBooks(pool, normalized ? 'chronological' : 'conceptual')
+  return orderBooks(pool, 'conceptual')
 }
 
 export function getTerritoryCounts(bookList) {
